@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>千鱼千寻 - 智能钓鱼助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* 功能卡片网格 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .skill-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .skill-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .skill-icon {
+            font-size: 40px;
+            margin-right: 15px;
+        }
+
+        .skill-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .skill-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .skill-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🎣 千鱼千寻</h1>
+            <p>智能钓鱼助手 - 让钓鱼更简单、更智能</p>
+        </div>
+
+        <!-- 功能卡片 -->
+        <div class="skills-grid">
+            <!-- 钓鱼教练 -->
+            <div class="skill-card" onclick="openModal('coach')">
+                <div class="skill-header">
+                    <div class="skill-icon">🎓</div>
+                    <div class="skill-title">钓鱼教练</div>
+                </div>
+                <div class="skill-description">
+                    AI 驱动的钓鱼问答系统，集成 RAG 和知识图谱，为你提供专业的钓鱼建议和技巧。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('coach')">立即咨询</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('查看历史记录')">历史记录</button>
+                </div>
+            </div>
+
+            <!-- 鱼类识别 -->
+            <div class="skill-card" onclick="openModal('fish')">
+                <div class="skill-header">
+                    <div class="skill-icon">🐟</div>
+                    <div class="skill-title">鱼类识别</div>
+                </div>
+                <div class="skill-description">
+                    基于 AI 视觉的鱼类物种识别，支持 3000+ 鱼种，上传照片即可识别鱼种并获取钓鱼技巧。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('fish')">上传识别</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('查看鱼种库')">鱼种库</button>
+                </div>
+            </div>
+
+            <!-- 天气顾问 -->
+            <div class="skill-card" onclick="openModal('weather')">
+                <div class="skill-header">
+                    <div class="skill-icon">🌤️</div>
+                    <div class="skill-title">天气顾问</div>
+                </div>
+                <div class="skill-description">
+                    实时天气预报和钓鱼适宜度分析，帮你选择最佳的钓鱼时间和地点。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('weather')">查询天气</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('钓鱼指数')">钓鱼指数</button>
+                </div>
+            </div>
+
+            <!-- 钓点管理 -->
+            <div class="skill-card" onclick="openModal('spots')">
+                <div class="skill-header">
+                    <div class="skill-icon">📍</div>
+                    <div class="skill-title">钓点管理</div>
+                </div>
+                <div class="skill-description">
+                    包含 99 个深圳钓点数据库，支持附近钓点搜索、按鱼种搜索等功能。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('spots')">搜索钓点</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('我的收藏')">我的收藏</button>
+                </div>
+            </div>
+
+            <!-- 渔获记录 -->
+            <div class="skill-card" onclick="openModal('catch')">
+                <div class="skill-header">
+                    <div class="skill-icon">📊</div>
+                    <div class="skill-title">渔获记录</div>
+                </div>
+                <div class="skill-description">
+                    记录你的每一次渔获，自动统计分析，帮你总结钓鱼经验和规律。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('catch')">记录渔获</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('查看统计')">查看统计</button>
+                </div>
+            </div>
+
+            <!-- 钓友圈 -->
+            <div class="skill-card" onclick="openModal('social')">
+                <div class="skill-header">
+                    <div class="skill-icon">💬</div>
+                    <div class="skill-title">钓友圈</div>
+                </div>
+                <div class="skill-description">
+                    分享你的钓鱼经验，与钓友交流互动，查看热门帖子和钓鱼技巧。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('social')">发布动态</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('浏览动态')">浏览动态</button>
+                </div>
+            </div>
+
+            <!-- 无人船控制 -->
+            <div class="skill-card" onclick="openModal('drone')">
+                <div class="skill-header">
+                    <div class="skill-icon">🚁</div>
+                    <div class="skill-title">无人船控制</div>
+                </div>
+                <div class="skill-description">
+                    查看无人船实时状态、历史轨迹，分析钓鱼数据，提升钓鱼效率。
+                </div>
+                <div class="skill-actions">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('drone')">查看状态</button>
+                    <button class="btn btn-secondary" onclick="event.stopPropagation(); alert('轨迹回放')">轨迹回放</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 钓鱼教练模态框 -->
+    <div id="coachModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('coach')">&times;</span>
+            <h2 class="modal-title">🎓 钓鱼教练</h2>
+
+            <div class="form-group">
+                <label class="form-label">请输入你的问题：</label>
+                <textarea class="form-textarea" id="coachQuestion" placeholder="例如：鲫鱼怎么钓？今天适合钓鱼吗？"></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="askCoach()" style="width: 100%;">提问</button>
+
+            <div class="loading" id="coachLoading">
+                <div class="spinner"></div>
+                <p>AI 教练正在思考...</p>
+            </div>
+
+            <div class="result-box" id="coachResult" style="display: none;">
+                <div class="result-title">AI 教练回答：</div>
+                <div class="result-content" id="coachAnswer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 鱼类识别模态框 -->
+    <div id="fishModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('fish')">&times;</span>
+            <h2 class="modal-title">🐟 鱼类识别</h2>
+
+            <div class="form-group">
+                <label class="form-label">上传鱼类照片：</label>
+                <input type="file" class="form-input" id="fishImage" accept="image/*">
+            </div>
+
+            <button class="btn btn-primary" onclick="identifyFish()" style="width: 100%;">开始识别</button>
+
+            <div class="loading" id="fishLoading">
+                <div class="spinner"></div>
+                <p>AI 正在识别...</p>
+            </div>
+
+            <div class="result-box" id="fishResult" style="display: none;">
+                <div class="result-title">识别结果：</div>
+                <div class="result-content" id="fishAnswer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 天气顾问模态框 -->
+    <div id="weatherModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('weather')">&times;</span>
+            <h2 class="modal-title">🌤️ 天气顾问</h2>
+
+            <div class="form-group">
+                <label class="form-label">城市名称：</label>
+                <input type="text" class="form-input" id="weatherCity" placeholder="例如：深圳" value="深圳">
+            </div>
+
+            <button class="btn btn-primary" onclick="getWeather()" style="width: 100%;">查询天气</button>
+
+            <div class="loading" id="weatherLoading">
+                <div class="spinner"></div>
+                <p>正在查询天气...</p>
+            </div>
+
+            <div class="result-box" id="weatherResult" style="display: none;">
+                <div class="result-title">天气信息：</div>
+                <div class="result-content" id="weatherAnswer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 其他模态框类似... -->
+
+    <script>
+        // API 基础 URL（需要根据实际情况修改）
+        const API_BASE_URL = 'http://localhost:8000/api';
+
+        // 打开模态框
+        function openModal(type) {
+            document.getElementById(type + 'Modal').classList.add('active');
+        }
+
+        // 关闭模态框
+        function closeModal(type) {
+            document.getElementById(type + 'Modal').classList.remove('active');
+        }
+
+        // 钓鱼教练提问
+        async function askCoach() {
+            const question = document.getElementById('coachQuestion').value;
+            if (!question.trim()) {
+                alert('请输入问题');
+                return;
+            }
+
+            // 显示加载动画
+            document.getElementById('coachLoading').classList.add('active');
+            document.getElementById('coachResult').style.display = 'none';
+
+            try {
+                // 调用 API（这里需要替换为实际的 API 端点）
+                const response = await fetch(`${API_BASE_URL}/coach/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+
+                // 显示结果
+                document.getElementById('coachAnswer').textContent = data.answer || '暂无回答';
+                document.getElementById('coachResult').style.display = 'block';
+            } catch (error) {
+                alert('请求失败：' + error.message);
+            } finally {
+                document.getElementById('coachLoading').classList.remove('active');
+            }
+        }
+
+        // 鱼类识别
+        async function identifyFish() {
+            const fileInput = document.getElementById('fishImage');
+            if (!fileInput.files[0]) {
+                alert('请选择图片');
+                return;
+            }
+
+            // 显示加载动画
+            document.getElementById('fishLoading').classList.add('active');
+            document.getElementById('fishResult').style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+
+                const response = await fetch(`${API_BASE_URL}/fish/identify`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // 显示结果
+                document.getElementById('fishAnswer').innerHTML = `
+                    <p><strong>鱼种：</strong>${data.species || '未知'}</p>
+                    <p><strong>置信度：</strong>${data.confidence || 'N/A'}</p>
+                    <p><strong>钓鱼技巧：</strong>${data.tips || '暂无'}</p>
+                `;
+                document.getElementById('fishResult').style.display = 'block';
+            } catch (error) {
+                alert('识别失败：' + error.message);
+            } finally {
+                document.getElementById('fishLoading').classList.remove('active');
+            }
+        }
+
+        // 查询天气
+        async function getWeather() {
+            const city = document.getElementById('weatherCity').value;
+            if (!city.trim()) {
+                alert('请输入城市名称');
+                return;
+            }
+
+            // 显示加载动画
+            document.getElementById('weatherLoading').classList.add('active');
+            document.getElementById('weatherResult').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/weather/current?city=${encodeURIComponent(city)}`);
+                const data = await response.json();
+
+                // 显示结果
+                document.getElementById('weatherAnswer').innerHTML = `
+                    <p><strong>城市：</strong>${data.city || city}</p>
+                    <p><strong>天气：</strong>${data.weather || '未知'}</p>
+                    <p><strong>温度：</strong>${data.temperature || 'N/A'}°C</p>
+                    <p><strong>钓鱼指数：</strong>${data.fishing_index || 'N/A'}</p>
+                    <p><strong>建议：</strong>${data.suggestion || '暂无'}</p>
+                `;
+                document.getElementById('weatherResult').style.display = 'block';
+            } catch (error) {
+                alert('查询失败：' + error.message);
+            } finally {
+                document.getElementById('weatherLoading').classList.remove('active');
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

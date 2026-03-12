@@ -1,0 +1,400 @@
+# OpenClaw 配置文件 - 千鱼千寻 AI 钓鱼教练
+# 版本: 2.0
+# 更新时间: 2026-03-11
+
+# ============ 基本信息 ============
+name: "千鱼千寻 OpenClaw"
+version: "2.0.0"
+description: "千鱼千寻 AI 钓鱼教练的 OpenClaw 集成配置"
+
+# ============ Community API 配置 ============
+api:
+  # API 基础 URL
+  base_url: "${API_BASE_URL:-https://qianyu.iepose.cn}"
+  
+  # 内部 API 认证
+  internal_token: "${INTERNAL_API_TOKEN}"
+  
+  # 请求超时（秒）
+  timeout: 30
+  
+  # 重试配置
+  retry:
+    max_attempts: 3
+    backoff_factor: 2
+    
+  # 健康检查
+  health_check:
+    enabled: true
+    interval: 60  # 秒
+    endpoint: "/health"
+
+# ============ 飞书配置 ============
+feishu:
+  # 飞书应用凭证
+  app_id: "${FEISHU_APP_ID}"
+  app_secret: "${FEISHU_APP_SECRET}"
+  
+  # 管理员群配置
+  admin_group:
+    id: "${FEISHU_ADMIN_GROUP_ID}"
+    name: "千鱼千寻管理员群"
+    
+  # Webhook 配置
+  webhooks:
+    alerts: "${FEISHU_WEBHOOK_ALERTS}"
+    reports: "${FEISHU_WEBHOOK_REPORTS}"
+    
+  # 消息配置
+  message:
+    retry_times: 3
+    timeout: 10
+
+# ============ Skills 配置 ============
+skills:
+  # P0 - 核心功能
+  - name: "fishing-coach"
+    display_name: "AI 钓鱼教练"
+    enabled: true
+    mcp_port: 8001
+    description: "AI 问答和钓鱼建议"
+    category: "core"
+    
+  - name: "weather-advisor"
+    display_name: "天气顾问"
+    enabled: true
+    mcp_port: 8002
+    description: "天气查询和钓鱼指数"
+    category: "core"
+    
+  - name: "spot-manager"
+    display_name: "钓点管理"
+    enabled: true
+    mcp_port: 8003
+    description: "钓点查询和推荐"
+    category: "core"
+    
+  - name: "fish-identifier"
+    display_name: "鱼种识别"
+    enabled: true
+    mcp_port: 8004
+    description: "鱼种识别和知识查询"
+    category: "core"
+    
+  # P1 - 数据功能
+  - name: "catch-tracker"
+    display_name: "渔获记录"
+    enabled: true
+    mcp_port: 8005
+    description: "渔获记录和统计"
+    category: "data"
+    
+  - name: "social-manager"
+    display_name: "钓友圈管理"
+    enabled: true
+    mcp_port: 8006
+    description: "帖子、评论、点赞管理"
+    category: "social"
+    
+  - name: "drone-controller"
+    display_name: "无人船控制"
+    enabled: true
+    mcp_port: 8007
+    description: "无人船遥测和控制"
+    category: "iot"
+    
+  # P2 - 扩展功能
+  - name: "fishing-report-manager"
+    display_name: "渔获报告管理"
+    enabled: true
+    mcp_port: 8008
+    description: "渔获报告的创建和查询"
+    category: "data"
+    
+  - name: "angler-radar"
+    display_name: "钓友雷达"
+    enabled: true
+    mcp_port: 8009
+    description: "钓友位置共享和查询"
+    category: "social"
+    
+  - name: "user-manager"
+    display_name: "用户管理"
+    enabled: true
+    mcp_port: 8010
+    description: "用户认证和资料管理"
+    category: "system"
+    
+  - name: "persona-manager"
+    display_name: "人设管理"
+    enabled: true
+    mcp_port: 8011
+    description: "AI 人设配置和切换"
+    category: "ai"
+    
+  - name: "feedback-manager"
+    display_name: "反馈管理"
+    enabled: true
+    mcp_port: 8012
+    description: "用户反馈收集和管理"
+    category: "system"
+
+# ============ MCP 服务器配置 ============
+mcp:
+  # MCP 服务器基础配置
+  host: "0.0.0.0"
+  port_range: [8001, 8012]
+  
+  # 进程管理
+  process_manager: "supervisor"  # supervisor | systemd | docker
+  
+  # 日志配置
+  logging:
+    level: "INFO"
+    directory: "/var/log/qianyu/mcp"
+    max_size: "100MB"
+    backup_count: 10
+    
+  # 健康检查
+  health_check:
+    enabled: true
+    interval: 30  # 秒
+    timeout: 5
+    
+  # 自动重启
+  auto_restart:
+    enabled: true
+    max_retries: 3
+    backoff: 10  # 秒
+
+# ============ 定时任务配置 ============
+cron_jobs:
+  # 每日数据报告
+  - name: "daily_report"
+    display_name: "每日数据报告"
+    schedule: "0 8 * * *"  # 每天早上 8:00
+    timezone: "Asia/Shanghai"
+    agent: "report-agent"
+    enabled: true
+    config:
+      report_type: "daily"
+      metrics:
+        - "user_activity"
+        - "content_stats"
+        - "catch_records"
+        - "system_health"
+      targets:
+        - type: "feishu"
+          webhook: "${FEISHU_WEBHOOK_REPORTS}"
+        - type: "database"
+          table: "daily_reports"
+          
+  # 每周数据摘要
+  - name: "weekly_summary"
+    display_name: "每周数据摘要"
+    schedule: "0 9 * * 1"  # 每周一早上 9:00
+    timezone: "Asia/Shanghai"
+    agent: "report-agent"
+    enabled: true
+    config:
+      report_type: "weekly"
+      metrics:
+        - "user_growth"
+        - "content_trends"
+        - "popular_spots"
+        - "top_catches"
+      targets:
+        - type: "feishu"
+          webhook: "${FEISHU_WEBHOOK_REPORTS}"
+          
+  # 数据备份
+  - name: "data_backup"
+    display_name: "数据备份"
+    schedule: "0 2 * * *"  # 每天凌晨 2:00
+    timezone: "Asia/Shanghai"
+    agent: "backup-agent"
+    enabled: true
+    config:
+      backup_type: "incremental"
+      targets:
+        - "database"
+        - "redis"
+        - "logs"
+      retention_days: 30
+
+# ============ 监控配置 ============
+monitoring:
+  # 启用监控
+  enabled: true
+  
+  # 检查间隔（秒）
+  check_interval: 300  # 5 分钟
+  
+  # 告警配置
+  alerts:
+    # API 错误率告警
+    - name: "api_error_rate"
+      type: "threshold"
+      metric: "api.error_rate"
+      threshold: 0.05  # 5%
+      window: 300  # 5 分钟
+      action: "feishu_alert"
+      
+    # API 响应时间告警
+    - name: "api_response_time"
+      type: "threshold"
+      metric: "api.response_time.p95"
+      threshold: 2000  # 2000ms
+      window: 300
+      action: "feishu_alert"
+      
+    # MCP 服务器宕机告警
+    - name: "mcp_server_down"
+      type: "availability"
+      metric: "mcp.server.status"
+      threshold: 0  # 任何服务器宕机
+      action: "feishu_alert"
+      
+    # 数据库连接告警
+    - name: "database_connection"
+      type: "availability"
+      metric: "database.connection.status"
+      threshold: 0
+      action: "feishu_alert"
+      
+  # 指标收集
+  metrics:
+    enabled: true
+    interval: 60  # 秒
+    retention_days: 30
+
+# ============ 日志配置 ============
+logging:
+  # 日志级别
+  level: "INFO"  # DEBUG | INFO | WARNING | ERROR | CRITICAL
+  
+  # 日志目录
+  directory: "/var/log/qianyu"
+  
+  # 日志文件
+  files:
+    main: "openclaw.log"
+    error: "openclaw_error.log"
+    access: "openclaw_access.log"
+    
+  # 日志轮转
+  rotation:
+    max_size: "100MB"
+    backup_count: 10
+    
+  # 日志格式
+  format: "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+# ============ 安全配置 ============
+security:
+  # 内部 API 认证
+  internal_api:
+    enabled: true
+    header_name: "X-Internal-API-Key"
+    key: "${INTERNAL_API_KEY}"
+    
+  # IP 白名单（可选）
+  ip_whitelist:
+    enabled: false
+    ips:
+      - "127.0.0.1"
+      - "192.168.1.0/24"
+      
+  # 速率限制
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    burst: 10
+
+# ============ 数据库配置 ============
+database:
+  # MySQL 配置
+  mysql:
+    host: "${MYSQL_HOST:-localhost}"
+    port: "${MYSQL_PORT:-3306}"
+    database: "${MYSQL_DATABASE:-qianyu}"
+    user: "${MYSQL_USER}"
+    password: "${MYSQL_PASSWORD}"
+    pool_size: 10
+    max_overflow: 20
+    
+  # Redis 配置
+  redis:
+    host: "${REDIS_HOST:-localhost}"
+    port: "${REDIS_PORT:-6379}"
+    db: "${REDIS_DB:-0}"
+    password: "${REDIS_PASSWORD}"
+    pool_size: 10
+
+# ============ 对象存储配置 ============
+storage:
+  # MinIO / S3 配置
+  type: "minio"  # minio | s3
+  endpoint: "${MINIO_ENDPOINT:-http://localhost:9000}"
+  access_key: "${MINIO_ACCESS_KEY}"
+  secret_key: "${MINIO_SECRET_KEY}"
+  bucket: "${MINIO_BUCKET:-qianyu}"
+  region: "us-east-1"
+
+# ============ 环境配置 ============
+environment:
+  # 运行环境
+  mode: "${ENV:-production}"  # development | staging | production
+  
+  # 调试模式
+  debug: false
+  
+  # 时区
+  timezone: "Asia/Shanghai"
+  
+  # 语言
+  language: "zh-CN"
+
+# ============ 性能配置 ============
+performance:
+  # 并发配置
+  max_workers: 4
+  max_connections: 100
+  
+  # 缓存配置
+  cache:
+    enabled: true
+    ttl: 300  # 秒
+    max_size: 1000
+    
+  # 队列配置
+  queue:
+    enabled: false  # 阶段 1 不启用
+    type: "redis"
+    max_size: 10000
+
+# ============ 功能开关 ============
+features:
+  # 实验性功能
+  experimental:
+    enabled: false
+    
+  # A/B 测试
+  ab_testing:
+    enabled: false
+    
+  # 数据分析
+  analytics:
+    enabled: true
+    
+  # 用户行为追踪
+  tracking:
+    enabled: true
+
+# ============ 备注 ============
+# 1. 所有 ${VAR} 格式的变量需要在 .env 文件中配置
+# 2. 端口 8001-8012 需要确保不被其他服务占用
+# 3. 飞书凭证需要在飞书开放平台申请
+# 4. 内部 API Token 需要生成强随机字符串
+# 5. 生产环境建议启用 IP 白名单和速率限制

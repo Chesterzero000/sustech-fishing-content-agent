@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qianyuqianxun-openclaw"
+version = "2.0.0"
+description = "千鱼千寻 OpenClaw Skills - Fishing Mini-Program Backend"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Agent_Pro Team"}
+]
+keywords = ["fishing", "openclaw", "mcp", "skills", "ai"]
+
+dependencies = [
+    "click>=8.1.0",
+    "python-dotenv>=1.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+mcp = [
+    "mcp>=0.5.0",
+]
+
+[project.scripts]
+fishing-cli = "cli.main:fishing_cli"
+
+[tool.setuptools]
+packages = ["shared", "cli", "mcp_servers", "skills"]
+
+[tool.setuptools.package-data]
+skills = ["*/SKILL.md", "*/README.md"]

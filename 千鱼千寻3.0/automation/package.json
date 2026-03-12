@@ -1,0 +1,24 @@
+{
+  "name": "automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "login:all": "node tests/index.js",
+    "login:neon": "node tests/index.js neon",
+    "login:github": "node tests/index.js github",
+    "login:wechat": "node tests/index.js wechat",
+    "login:supabase": "node tests/index.js supabase",
+    "login:vercel": "node tests/index.js vercel",
+    "login:feishu": "node tests/index.js feishu"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@playwright/test": "^1.58.2",
+    "dotenv": "^17.3.1",
+    "playwright": "^1.58.2"
+  }
+}

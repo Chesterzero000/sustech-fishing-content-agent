@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"e:\\\\桌面\\\\南科大\\\\未来企业家俱乐部\\\\声纳鱼探\\\\Agent_Pro\\\\千鱼千寻2.0\" -name \"*.py\" -exec wc -l {} +)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
