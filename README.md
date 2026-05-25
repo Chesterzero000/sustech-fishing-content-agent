@@ -24,6 +24,6 @@
 
 ## 中文命名
 
-当前 GitHub 仓库名：`fishing-agent-robot`  
-建议仓库 slug：`sustech-fishing-content-agent`  
+当前 GitHub 仓库名：`sustech-fishing-content-agent`  
+原仓库名：`fishing-agent-robot`  
 中文项目名：`南科大钓鱼协会内容机器人`
